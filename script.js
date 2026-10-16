@@ -220,12 +220,30 @@ function galleryBlock(srcs) {
   return g;
 }
 
+/* ±10 second buttons, used under video, audio and YouTube */
+function skipRow(seek) {
+  const row = el("div", "skip");
+  [[-10, "\u21BA 10s", "Back 10 seconds"], [10, "10s \u21BB", "Forward 10 seconds"]].forEach(([d, label, aria]) => {
+    const b = el("button", "skip-btn", label);
+    b.type = "button"; b.setAttribute("aria-label", aria);
+    b.addEventListener("click", () => seek(d));
+    row.append(b);
+  });
+  return row;
+}
+function seekMedia(m, d) {
+  const dur = isFinite(m.duration) ? m.duration : Infinity;
+  m.currentTime = Math.max(0, Math.min(dur, (m.currentTime || 0) + d));
+}
+
 function videoBlock(src) {
+  const box = el("div", "player");
   const v = document.createElement("video");
   v.className = "vid"; v.controls = true; v.playsInline = true; v.preload = "metadata";
   v.src = src + "#t=0.001";
-  v.addEventListener("error", () => v.replaceWith(broken(src, "Video")), { once: true });
-  return v;
+  v.addEventListener("error", () => box.replaceChildren(broken(src, "Video")), { once: true });
+  box.append(v, skipRow(d => seekMedia(v, d)));
+  return box;
 }
 
 function audioBlock(src) {
@@ -233,28 +251,86 @@ function audioBlock(src) {
   const a = document.createElement("audio");
   a.controls = true; a.preload = "none"; a.src = src;
   a.addEventListener("error", () => box.replaceChildren(broken(src, "Audio")), { once: true });
-  box.append(a);
+  box.append(a, skipRow(d => seekMedia(a, d)));
   return box;
 }
 
+/* YouTube: official IFrame API so the buttons can seek */
+let ytApi = null;
+const ytPlayers = new Set();
+function loadYT() {
+  if (window.YT && window.YT.Player) return Promise.resolve(true);
+  if (ytApi) return ytApi;
+  ytApi = new Promise(res => {
+    const prev = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => { if (prev) prev(); res(true); };
+    const s = document.createElement("script");
+    s.src = "https://www.youtube.com/iframe_api"; s.async = true;
+    s.onerror = () => res(false);
+    document.head.append(s);
+    setTimeout(() => res(!!(window.YT && window.YT.Player)), 8000);
+  });
+  return ytApi;
+}
+function pauseAllYT(except) {
+  ytPlayers.forEach(p => { if (p !== except) { try { p.pauseVideo(); } catch {} } });
+}
+
 function youtubeBlock(b) {
-  const btn = el("button", "yt" + (b.short ? " short" : ""));
-  btn.type = "button";
-  btn.setAttribute("aria-label", "Play YouTube video");
-  btn.style.backgroundImage = `url(https://i.ytimg.com/vi/${b.id}/hqdefault.jpg)`;
-  btn.innerHTML = '<span class="yt-play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>';
-  btn.addEventListener("click", () => {
+  const box = el("div", "player");
+  const thumb = el("button", "yt" + (b.short ? " short" : ""));
+  thumb.type = "button";
+  thumb.setAttribute("aria-label", "Play YouTube video");
+  thumb.style.backgroundImage = `url(https://i.ytimg.com/vi/${b.id}/hqdefault.jpg)`;
+  thumb.innerHTML = '<span class="yt-play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>';
+
+  thumb.addEventListener("click", async () => {
     document.querySelectorAll("video,audio").forEach(m => m.pause());
-    const f = document.createElement("iframe");
-    f.src = `https://www.youtube-nocookie.com/embed/${b.id}?autoplay=1&rel=0&playsinline=1${b.start ? "&start=" + b.start : ""}`;
-    f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
-    f.allowFullscreen = true;
-    f.title = "YouTube video";
-    btn.replaceChildren(f);
-    btn.style.backgroundImage = "none";
-    btn.classList.add("playing");
+    pauseAllYT();
+    thumb.classList.add("loading");
+    const ok = await loadYT();
+    const frame = el("div", "ytframe" + (b.short ? " short" : ""));
+    const mount = el("div");
+    frame.append(mount);
+    thumb.replaceWith(frame);
+
+    if (!ok) { // API blocked: plain embed, no skip buttons
+      const f = document.createElement("iframe");
+      f.src = `https://www.youtube-nocookie.com/embed/${b.id}?autoplay=1&rel=0&playsinline=1${b.start ? "&start=" + b.start : ""}`;
+      f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+      f.allowFullscreen = true; f.title = "YouTube video";
+      frame.replaceChildren(f);
+      return;
+    }
+
+    let ready = false;
+    const vars = { autoplay: 1, rel: 0, playsinline: 1, start: Number(b.start) || 0 };
+    if (/^https?:$/.test(location.protocol)) vars.origin = location.origin;
+    const player = new YT.Player(mount, {
+      host: "https://www.youtube-nocookie.com",
+      videoId: b.id, width: "100%", height: "100%", playerVars: vars,
+      events: {
+        onReady: e => { ready = true; try { e.target.playVideo(); } catch {} },
+        onStateChange: e => {
+          if (e.data === 1) {
+            document.querySelectorAll("video,audio").forEach(m => m.pause());
+            pauseAllYT(player);
+          }
+        }
+      }
+    });
+    ytPlayers.add(player);
+    box.append(skipRow(d => {
+      if (!ready) return;
+      const dur = player.getDuration() || 0;
+      let t = player.getCurrentTime() + d;
+      t = Math.max(0, dur ? Math.min(dur - 0.5, t) : t);
+      player.seekTo(t, true);
+    }));
   }, { once: true });
-  return btn;
+
+  box.append(thumb);
+  return box;
 }
 
 function linkBlock(href) {
@@ -292,6 +368,7 @@ function buildPost(post) {
 /* only one media plays at a time */
 document.addEventListener("play", e => {
   document.querySelectorAll("video,audio").forEach(m => { if (m !== e.target) m.pause(); });
+  pauseAllYT();
 }, true);
 
 /* ---------- lightbox ---------- */
@@ -402,7 +479,7 @@ addEventListener("scroll", () => {
 addEventListener("pagehide", saveScroll);
 
 function restoreScroll() {
-  const nav = performance.getEntriesByType("navigation")[0];
+  const nav = (performance.getEntriesByType && performance.getEntriesByType("navigation")[0]);
   if (!nav || !/reload|back_forward/.test(nav.type)) return;
   let s = null;
   try { s = JSON.parse(sessionStorage.getItem(SKEY)); } catch {}

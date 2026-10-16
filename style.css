@@ -134,7 +134,19 @@ button{font:inherit;color:inherit}
   display:grid;place-items:center;box-shadow:0 0 22px rgba(25,255,74,.5);
 }
 .yt-play svg{width:28px;height:28px;fill:var(--g);margin-left:4px}
-.yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.yt.loading{opacity:.7}
+.ytframe{position:relative;width:100%;aspect-ratio:16/9;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#000}
+.ytframe.short{aspect-ratio:9/16;max-width:360px;margin-inline:auto}
+.ytframe iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+
+.skip{display:flex;gap:8px;margin-top:8px}
+.skip-btn{
+  flex:1;padding:10px 0;border-radius:10px;cursor:pointer;
+  background:rgba(25,255,74,.07);border:1px solid var(--line-strong);
+  color:var(--g);font:700 13px/1 var(--mono);letter-spacing:.02em;
+}
+.skip-btn:hover{background:rgba(25,255,74,.16)}
+.skip-btn:active{transform:scale(.98)}
 
 .linkcard{
   display:block;padding:12px 14px;border:1px solid var(--line);border-radius:10px;text-decoration:none;
