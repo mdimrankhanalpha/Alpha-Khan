@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Alpha Khan</title>
+<meta name="theme-color" content="#000000">
+<meta name="description" content="Alpha Khan">
+<link rel="icon" href="https://raw.githubusercontent.com/mdimrankhanalpha/Alpha-Khan/main/file_0000000015388211911a75ea3e0b1679.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="rain" aria-hidden="true"></canvas>
+
+<header class="topbar" id="topbar" aria-hidden="true">
+  <img id="topAvatar" alt="" width="30" height="30">
+  <span id="topName">Alpha Khan</span>
+</header>
+
+<main class="wrap">
+  <section class="profile">
+    <button class="avatar-btn" id="avatarBtn" type="button" aria-label="View profile photo">
+      <img id="avatar" alt="Alpha Khan" width="108" height="108">
+    </button>
+    <h1 id="name">Alpha Khan</h1>
+    <p class="bio" id="bio" hidden></p>
+    <p class="stats" id="stats" aria-live="polite"></p>
+  </section>
+
+  <div id="feed"></div>
+  <div id="sentinel" aria-hidden="true"></div>
+  <noscript><p class="notice">JavaScript is required to show posts.</p></noscript>
+</main>
+
+<button class="pill" id="newPill" type="button" hidden>New posts available. Tap to refresh</button>
+
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Photo viewer">
+  <button class="lb-btn lb-close" id="lbClose" type="button" aria-label="Close">&times;</button>
+  <button class="lb-btn lb-prev" id="lbPrev" type="button" aria-label="Previous photo">&#8249;</button>
+  <img id="lbImg" alt="">
+  <button class="lb-btn lb-next" id="lbNext" type="button" aria-label="Next photo">&#8250;</button>
+  <div class="lb-count" id="lbCount"></div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

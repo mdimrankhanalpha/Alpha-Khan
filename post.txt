@@ -1,0 +1,20 @@
+This is a short text post. The newest post stays at the top of this file.
+$
+This is a long post. Only the first 6 lines are shown, then a Read more button appears. Tap it to open the full text.
+
+Line two of the long text.
+Line three of the long text.
+Line four of the long text.
+Line five of the long text.
+Line six of the long text.
+Line seven is hidden until Read more is tapped.
+Line eight is hidden until Read more is tapped.
+Line nine is hidden until Read more is tapped.
+
+https://github.com/mdimrankhanalpha/Alpha-Khan/blob/main/file_0000000015388211911a75ea3e0b1679.png
+$
+Three photos in a row become one swipeable gallery.
+
+https://github.com/mdimrankhanalpha/Alpha-Khan/blob/main/file_0000000015388211911a75ea3e0b1679.png
+https://github.com/mdimrankhanalpha/Alpha-Khan/blob/main/file_0000000015388211911a75ea3e0b1679.png
+https://github.com/mdimrankhanalpha/Alpha-Khan/blob/main/file_0000000015388211911a75ea3e0b1679.png
