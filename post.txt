@@ -1,4 +1,6 @@
 $
+203 minutes = 3 hours 23 minutes
+$
 For 100,000+ songs, multiple audio formats, a public GitHub repository, and automatic playback, I recommend building your website as a music-library frontend backed by an automatically generated catalog—not asking the browser to scan 100,000 files every time someone opens the website.
 
 The important distinction is that your website can have an effectively unlimited library, but GitHub Pages alone is not an unlimited music-hosting or streaming service.
